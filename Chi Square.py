@@ -22,6 +22,8 @@ class ChiSquareApp:
 
         self.entries = []
         self.result_label = None
+        self.rows = 0
+        self.cols = 0
 
     def create_grid(self):
         # Clear previous entries and result
@@ -29,8 +31,10 @@ class ChiSquareApp:
             for entry in row:
                 entry.destroy()
         self.entries.clear()
+
         if self.result_label:
-            self.result_label.config(text="")
+            self.result_label.destroy()
+            self.result_label = None
 
         try:
             self.rows = int(self.row_entry.get())
@@ -62,8 +66,12 @@ class ChiSquareApp:
             messagebox.showerror("Invalid input", "Please enter valid integers ≥ 2 for rows and columns.")
 
     def calculate(self):
+        if not self.entries or not self.result_label:
+            messagebox.showwarning("Warning", "Please set the grid first.")
+            return
+
         try:
-            obs = np.array([[int(entry.get()) for entry in row] for row in self.entries])
+            obs = np.array([[float(entry.get()) for entry in row] for row in self.entries])
 
             row_totals = obs.sum(axis=1)
             col_totals = obs.sum(axis=0)
@@ -84,27 +92,24 @@ class ChiSquareApp:
             self.result_label.config(text=result_text)
 
         except ValueError:
-            messagebox.showerror("Invalid input", "Please fill all cells with whole numbers.")
+            messagebox.showerror("Invalid input", "Please fill all cells with numeric values.")
 
     def clear(self):
-        # Clear row/column entry fields
         self.row_entry.delete(0, tk.END)
         self.col_entry.delete(0, tk.END)
 
-        # Destroy grid entry widgets
         for row in self.entries:
             for entry in row:
                 entry.destroy()
         self.entries.clear()
 
-        # Remove result label
         if self.result_label:
             self.result_label.destroy()
             self.result_label = None
 
-        # Destroy buttons if present
+        # Remove all widgets from below the input line
         for widget in self.root.grid_slaves():
-            if int(widget.grid_info()["row"]) >= self.rows + 2:
+            if int(widget.grid_info()["row"]) > 0:
                 widget.destroy()
 
 
